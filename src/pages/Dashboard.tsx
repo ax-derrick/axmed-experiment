@@ -473,7 +473,7 @@ function Dashboard() {
                   size="large"
                   style={{ marginBottom: 12, height: 48 }}
                 >
-                  Add Products
+                  Add Medicines
                 </Button>
               </Dropdown>
 
@@ -604,7 +604,7 @@ function Dashboard() {
               icon={<UploadOutlined />}
               style={{ flex: 1 }}
             >
-              Add Products
+              Add Medicines
             </Button>
           </Dropdown>
           <Dropdown
