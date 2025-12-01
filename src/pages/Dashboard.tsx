@@ -559,16 +559,8 @@ function Dashboard() {
                 <a href="/handbook" className="resource-link">
                   <RocketOutlined className="resource-icon" />
                   <div className="resource-content">
-                    <Text strong>New Supplier Handbook</Text>
+                    <Text strong>Supplier Handbook</Text>
                     <Text type="secondary" style={{ fontSize: 12 }}>Get started guide & best practices</Text>
-                  </div>
-                  <RightOutlined className="resource-arrow" />
-                </a>
-                <a href="/tips" className="resource-link">
-                  <InfoCircleOutlined className="resource-icon" />
-                  <div className="resource-content">
-                    <Text strong>Bidding Tips</Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Win more tenders with these strategies</Text>
                   </div>
                   <RightOutlined className="resource-arrow" />
                 </a>
