@@ -1,13 +1,7 @@
-import { Typography, Card, Row, Col, Statistic, Spin, Segmented, theme } from 'antd';
+import { Typography, Card, Row, Col, Spin, Segmented } from 'antd';
 import { useState, useEffect, useRef } from 'react';
-import {
-  ArrowUpOutlined,
-  DollarOutlined,
-  ShoppingCartOutlined,
-  FileTextOutlined,
-} from '@ant-design/icons';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 // Metabase embed URLs (tokens expire 2025-12-05)
 const MARKETPLACE_IFRAME_URL =
@@ -21,9 +15,15 @@ const METABASE_RESIZER_URL = 'https://axmed.metabaseapp.com/app/iframeResizer.js
 
 type DataView = 'marketplace' | 'my-country';
 
+// KPI data matching Dashboard's rfq-metric-card style
+const kpiData = [
+  { title: 'My Total Revenue', value: '$1,234,567' },
+  { title: 'My Active Tenders', value: '42' },
+  { title: 'My Win Rate', value: '68.5%' },
+  { title: 'My Pending Bids', value: '12' },
+];
+
 function Analytics() {
-  const { useToken } = theme;
-  const { token } = useToken();
   const [iframeLoading, setIframeLoading] = useState(true);
   const [dataView, setDataView] = useState<DataView>('marketplace');
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -55,10 +55,10 @@ function Analytics() {
   };
 
   return (
-    <div>
+    <div className="analytics-page">
       {/* Header with title and segmented control */}
-      <Card style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Card style={{ marginBottom: 12 }} bodyStyle={{ padding: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <Title level={4} style={{ margin: 0 }}>Analytics</Title>
           <Segmented
             options={[
@@ -72,89 +72,36 @@ function Analytics() {
       </Card>
 
       {/* KPI Summary Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="My Total Revenue"
-              value={1234567}
-              precision={2}
-              prefix={<DollarOutlined />}
-              suffix="USD"
-              valueStyle={{ fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="My Active Tenders"
-              value={42}
-              prefix={<ShoppingCartOutlined />}
-              valueStyle={{ color: token.colorPrimary, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="My Win Rate"
-              value={68.5}
-              precision={1}
-              valueStyle={{ color: token.colorSuccess, fontWeight: 700 }}
-              prefix={<ArrowUpOutlined />}
-              suffix="%"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="My Pending Bids"
-              value={12}
-              prefix={<FileTextOutlined />}
-              valueStyle={{ color: token.colorError, fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
+      <Row gutter={[8, 8]} style={{ marginBottom: 12 }} className="analytics-kpi-row">
+        {kpiData.map((kpi, index) => (
+          <Col xs={12} sm={12} lg={6} key={index}>
+            <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>{kpi.title}</Text>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>
+                {kpi.value}
+              </div>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       {/* Metabase Dashboard Embed */}
-      <Card style={{ padding: 0 }} bodyStyle={{ padding: 0 }}>
-        <div style={{ position: 'relative', minHeight: 400 }}>
-          {iframeLoading && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 400,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: '#fafafa',
-              borderRadius: 8,
-              zIndex: 1,
-            }}>
-              <Spin size="large" />
-            </div>
-          )}
-          <iframe
-            ref={iframeRef}
-            key={dataView}
-            src={iframeUrl}
-            width="100%"
-            style={{
-              border: 'none',
-              borderRadius: 8,
-              display: 'block',
-              minHeight: 400,
-            }}
-            onLoad={handleIframeLoad}
-            title="Supplier Analytics Dashboard"
-          />
-        </div>
-      </Card>
+      <div style={{ position: 'relative', minHeight: 400, borderRadius: 8, overflow: 'hidden' }}>
+        {iframeLoading && (
+          <div className="iframe-loading">
+            <Spin size="large" />
+          </div>
+        )}
+        <iframe
+          ref={iframeRef}
+          key={dataView}
+          src={iframeUrl}
+          width="100%"
+          style={{ border: 'none', display: 'block', minHeight: 400, borderRadius: 8 }}
+          onLoad={handleIframeLoad}
+          title="Supplier Analytics Dashboard"
+        />
+      </div>
     </div>
   );
 }

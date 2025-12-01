@@ -128,7 +128,7 @@ function Dashboard() {
         {/* ============ MAIN CONTENT COLUMN (LEFT) ============ */}
         <Col xs={24} lg={16}>
           {/* Header with Score */}
-          <Card className="welcome-header-card" style={{ marginBottom: 12 }}>
+          <Card className="welcome-header-card" style={{ marginBottom: 12 }} bodyStyle={{ padding: 16 }}>
             <Row align="middle" gutter={24}>
               <Col>
                 <Tooltip
@@ -202,7 +202,7 @@ function Dashboard() {
           </Card>
 
           {/* Procurement Journey */}
-          <Card className="journey-card" style={{ marginBottom: 12, padding: 0 }} bodyStyle={{ padding: '16px 48px 16px 24px' }}>
+          <Card className="journey-card" style={{ marginBottom: 12 }} bodyStyle={{ padding: '16px 24px' }}>
             {/* Desktop: Full steps view */}
             <List
               itemLayout="horizontal"
@@ -447,7 +447,7 @@ function Dashboard() {
         <Col xs={24} lg={8}>
           <div style={{ position: 'sticky', top: 76 }}>
             {/* Quick Actions (QABs) */}
-            <Card title="Quick Actions" className="quick-actions-card" style={{ marginBottom: 12 }}>
+            <Card title="Quick Actions" className="quick-actions-card" style={{ marginBottom: 12 }} bodyStyle={{ padding: 16 }}>
               {/* Primary CTA - Add Products (hidden on mobile, shown in sticky footer) */}
               <Dropdown
                 menu={{
@@ -546,7 +546,7 @@ function Dashboard() {
             </Row>
 
             {/* Resources & Help */}
-            <Card className="resources-card" bodyStyle={{ padding: 16 }}>
+            <Card className="resources-card" style={{ marginBottom: 12 }} bodyStyle={{ padding: 16 }}>
               <div className="resource-links">
                 <a href="/profile" className="resource-link">
                   <UserOutlined className="resource-icon" />

@@ -485,8 +485,7 @@
 
 /* Mobile Navigation Drawer */
 .mobile-drawer-logo {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 0 16px 12px 8px;
 }
 
 .mobile-drawer-bottom {
@@ -878,12 +877,20 @@
   }
 
   .ant-card-head {
-    padding: 0 12px;
+    padding: 0 12px !important;
     min-height: 40px;
   }
 
   .ant-card-head-title {
     font-size: 14px;
+  }
+
+  /* Card extra buttons - consistent sizing */
+  .ant-card-head-extra .ant-btn {
+    font-size: 12px !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 0 !important;
   }
 
   /* Touch-friendly buttons */
@@ -1474,5 +1481,51 @@ a:has(.quickstart-card):hover {
   border-color: #392AB0;
   color: #392AB0;
   transform: translateX(4px);
+}
+
+/* ============ DASHBOARD LAYOUT FIX ============ */
+
+.welcome-header-card {
+  overflow: hidden;
+}
+
+/* ============ ANALYTICS PAGE STYLES ============ */
+
+.analytics-page {
+  padding-bottom: 24px;
+  overflow-x: hidden;
+}
+
+/* Analytics responsive styles */
+@media (max-width: 768px) {
+  /* Header card with segmented control */
+  .analytics-page .ant-card:first-child .ant-card-body > div {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .analytics-page .ant-segmented {
+    width: 100%;
+  }
+
+  .analytics-page .ant-segmented-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Iframe min-height on mobile */
+  .analytics-page .ant-card:has(iframe) .ant-card-body > div:first-child {
+    min-height: 300px;
+  }
+
+  .analytics-page .ant-card:has(iframe) iframe {
+    min-height: 300px;
+  }
+
+  /* KPI row - ensure 2 columns on mobile like dashboard */
+  .analytics-kpi-row > .ant-col {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
 }
 
