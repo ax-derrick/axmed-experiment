@@ -57,20 +57,22 @@ function Analytics() {
   return (
     <div>
       {/* Header with title and segmented control */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={4} style={{ margin: 0 }}>Analytics</Title>
-        <Segmented
-          options={[
-            { label: 'Marketplace Data', value: 'marketplace' },
-            { label: 'My Country', value: 'my-country' },
-          ]}
-          value={dataView}
-          onChange={(value) => handleViewChange(value as DataView)}
-        />
-      </div>
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={4} style={{ margin: 0 }}>Analytics</Title>
+          <Segmented
+            options={[
+              { label: 'Marketplace Data', value: 'marketplace' },
+              { label: 'My Country', value: 'my-country' },
+            ]}
+            value={dataView}
+            onChange={(value) => handleViewChange(value as DataView)}
+          />
+        </div>
+      </Card>
 
       {/* KPI Summary Cards */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
@@ -79,6 +81,7 @@ function Analytics() {
               precision={2}
               prefix={<DollarOutlined />}
               suffix="USD"
+              valueStyle={{ fontWeight: 700 }}
             />
           </Card>
         </Col>
@@ -88,7 +91,7 @@ function Analytics() {
               title="My Active Tenders"
               value={42}
               prefix={<ShoppingCartOutlined />}
-              valueStyle={{ color: token.colorPrimary }}
+              valueStyle={{ color: token.colorPrimary, fontWeight: 700 }}
             />
           </Card>
         </Col>
@@ -98,7 +101,7 @@ function Analytics() {
               title="My Win Rate"
               value={68.5}
               precision={1}
-              valueStyle={{ color: token.colorSuccess }}
+              valueStyle={{ color: token.colorSuccess, fontWeight: 700 }}
               prefix={<ArrowUpOutlined />}
               suffix="%"
             />
@@ -110,46 +113,48 @@ function Analytics() {
               title="My Pending Bids"
               value={12}
               prefix={<FileTextOutlined />}
-              valueStyle={{ color: token.colorError }}
+              valueStyle={{ color: token.colorError, fontWeight: 700 }}
             />
           </Card>
         </Col>
       </Row>
 
       {/* Metabase Dashboard Embed */}
-      <div style={{ marginTop: 24, position: 'relative', minHeight: 400 }}>
-        {iframeLoading && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 400,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#fafafa',
-            borderRadius: 8,
-            zIndex: 1,
-          }}>
-            <Spin size="large" />
-          </div>
-        )}
-        <iframe
-          ref={iframeRef}
-          key={dataView}
-          src={iframeUrl}
-          width="100%"
-          style={{
-            border: 'none',
-            borderRadius: 8,
-            display: 'block',
-            minHeight: 400,
-          }}
-          onLoad={handleIframeLoad}
-          title="Supplier Analytics Dashboard"
-        />
-      </div>
+      <Card style={{ padding: 0 }} bodyStyle={{ padding: 0 }}>
+        <div style={{ position: 'relative', minHeight: 400 }}>
+          {iframeLoading && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 400,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#fafafa',
+              borderRadius: 8,
+              zIndex: 1,
+            }}>
+              <Spin size="large" />
+            </div>
+          )}
+          <iframe
+            ref={iframeRef}
+            key={dataView}
+            src={iframeUrl}
+            width="100%"
+            style={{
+              border: 'none',
+              borderRadius: 8,
+              display: 'block',
+              minHeight: 400,
+            }}
+            onLoad={handleIframeLoad}
+            title="Supplier Analytics Dashboard"
+          />
+        </div>
+      </Card>
     </div>
   );
 }
