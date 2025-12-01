@@ -86,7 +86,41 @@ function Dashboard() {
   };
   const supplierTier = getSupplierTier();
 
+  // Dynamic Metrics based on Step
+  const getDynamicMetrics = () => {
+    // Step 0: Setup Profile (Empty State)
+    if (selectedStepIndex === 0) {
+      return {
+        availableRfqs: 387, // Still show available
+        matchingRfqs: 0,    // No profile yet, so no matches
+        nonMatchingRfqs: 0,
+        totalSkus: 0        // No products uploaded
+      };
+    }
+    // Default / Active State
+    return {
+      availableRfqs: 387,
+      matchingRfqs: 342,
+      nonMatchingRfqs: 45,
+      totalSkus: 500
+    };
+  };
+  const metrics = getDynamicMetrics();
 
+  // Dynamic Opportunities based on Step
+  const getDynamicOpportunities = () => {
+    // Step 0: Setup Profile (New User State)
+    if (selectedStepIndex === 0) {
+      return availableOpportunities.map(opp => ({
+        ...opp,
+        hasActiveBid: false, // Reset all bids to false
+        badge: undefined     // Remove badges that imply activity
+      }));
+    }
+    // Default / Active State
+    return availableOpportunities;
+  };
+  const currentOpportunities = getDynamicOpportunities();
 
   return (
     <div className="dashboard-merged">
@@ -243,7 +277,7 @@ function Dashboard() {
             bodyStyle={{ padding: 0 }}
           >
             <Table
-              dataSource={availableOpportunities}
+              dataSource={currentOpportunities}
               rowKey="id"
               pagination={false}
               size="small"
@@ -354,7 +388,7 @@ function Dashboard() {
               <Tooltip title="Total number of active RFQs available on the platform that you can submit bids for">
                 <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                   <Text type="secondary" style={{ fontSize: 12 }}>Available RFQs to bid</Text>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>387</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.availableRfqs}</div>
                 </Card>
               </Tooltip>
             </Col>
@@ -362,7 +396,7 @@ function Dashboard() {
               <Tooltip title="RFQs that match products in your portfolio - these are your best opportunities to win">
                 <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                   <Text type="secondary" style={{ fontSize: 12 }}>RFQs matching Portfolio</Text>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>342</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.matchingRfqs}</div>
                 </Card>
               </Tooltip>
             </Col>
@@ -370,7 +404,7 @@ function Dashboard() {
               <Tooltip title="RFQs for products not currently in your portfolio - consider adding these products to expand your opportunities">
                 <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                   <Text type="secondary" style={{ fontSize: 12 }}>RFQs not in Portfolio</Text>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>45</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.nonMatchingRfqs}</div>
                 </Card>
               </Tooltip>
             </Col>
@@ -378,7 +412,7 @@ function Dashboard() {
               <Tooltip title="Total number of unique products (SKUs) you have added to your portfolio">
                 <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                   <Text type="secondary" style={{ fontSize: 12 }}>Total SKUs in Portfolio</Text>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>500</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.totalSkus}</div>
                 </Card>
               </Tooltip>
             </Col>
@@ -484,7 +518,7 @@ function Dashboard() {
                 <Tooltip title="Total number of active RFQs available on the platform that you can submit bids for">
                   <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                     <Text type="secondary" style={{ fontSize: 12 }}>Available RFQs to bid</Text>
-                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>387</div>
+                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.availableRfqs}</div>
                   </Card>
                 </Tooltip>
               </Col>
@@ -492,7 +526,7 @@ function Dashboard() {
                 <Tooltip title="RFQs that match products in your portfolio - these are your best opportunities to win">
                   <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                     <Text type="secondary" style={{ fontSize: 12 }}>RFQs matching Portfolio</Text>
-                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>342</div>
+                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.matchingRfqs}</div>
                   </Card>
                 </Tooltip>
               </Col>
@@ -500,7 +534,7 @@ function Dashboard() {
                 <Tooltip title="RFQs for products not currently in your portfolio - consider adding these products to expand your opportunities">
                   <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                     <Text type="secondary" style={{ fontSize: 12 }}>RFQs not in Portfolio</Text>
-                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>45</div>
+                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.nonMatchingRfqs}</div>
                   </Card>
                 </Tooltip>
               </Col>
@@ -508,7 +542,7 @@ function Dashboard() {
                 <Tooltip title="Total number of unique products (SKUs) you have added to your portfolio">
                   <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
                     <Text type="secondary" style={{ fontSize: 12 }}>Total SKUs in Portfolio</Text>
-                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>500</div>
+                    <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>{metrics.totalSkus}</div>
                   </Card>
                 </Tooltip>
               </Col>
