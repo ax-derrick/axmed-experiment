@@ -91,7 +91,7 @@ function Dashboard() {
     // Step 0: Setup Profile (Empty State)
     if (selectedStepIndex === 0) {
       return {
-        availableRfqs: 387, // Still show available
+        availableRfqs: 15443, // Still show available
         matchingRfqs: 0,    // No profile yet, so no matches
         nonMatchingRfqs: 0,
         totalSkus: 0        // No products uploaded
@@ -99,7 +99,7 @@ function Dashboard() {
     }
     // Default / Active State
     return {
-      availableRfqs: 387,
+      availableRfqs: 15443,
       matchingRfqs: 342,
       nonMatchingRfqs: 45,
       totalSkus: 500
@@ -270,7 +270,7 @@ function Dashboard() {
 
           {/* Available Opportunities */}
           <Card
-            title={<span><FileTextOutlined style={{ marginRight: 8 }} />Available Opportunities</span>}
+            title={<span>Available Opportunities <span style={{ fontSize: 14, fontWeight: 'normal', color: '#999' }}>({metrics.availableRfqs.toLocaleString()})</span></span>}
             extra={<Link to="/open-tenders"><Button type="link" size="small" style={{ padding: 0 }}>See all <RightOutlined /></Button></Link>}
             className="opportunities-list-card"
             style={{ marginBottom: 12 }}
@@ -419,8 +419,12 @@ function Dashboard() {
           </Row>
 
           {/* Marketplace Pulse */}
-          <Card title="Marketplace Pulse" style={{ marginBottom: 12 }} bodyStyle={{ padding: 8 }}>
-            <div style={{ position: 'relative', height: 240, overflow: 'hidden', borderRadius: 8 }}>
+          <Card 
+            title="Marketplace Pulse" 
+            extra={<Link to="/analytics"><Button type="link" size="small" style={{ padding: 0 }}>View full analytics <RightOutlined /></Button></Link>}
+            style={{ marginBottom: 12 }} 
+            bodyStyle={{ padding: 0 }}>
+            <div style={{ position: 'relative', height: 400, overflow: 'hidden', borderRadius: 8 }}>
               {iframeLoading && (
                 <div className="iframe-loading">
                   <Spin size="large" />
@@ -430,18 +434,11 @@ function Dashboard() {
                 ref={iframeRef}
                 src={DASHBOARD_SNAPSHOT_URL}
                 width="100%"
-                height="240"
+                height="400"
                 style={{ border: 'none', borderRadius: 8, display: 'block' }}
                 onLoad={handleIframeLoad}
                 title="Marketplace Pulse"
               />
-            </div>
-            <div style={{ marginTop: 12, textAlign: 'right' }}>
-              <Link to="/analytics">
-                <Button type="link" style={{ padding: 0 }}>
-                  View full analytics <RightOutlined />
-                </Button>
-              </Link>
             </div>
           </Card>
         </Col>
