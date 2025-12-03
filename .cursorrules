@@ -1,0 +1,72 @@
+# Axmed Dashboard Prototype - Cursor Rules
+
+## Role-Based Navigation
+- **CRITICAL**: When working on buyer-side components, ALL links must include `?r=buyer` query parameter
+- When working on supplier-side components, ALL links must include `?r=supplier` query parameter (or omit since supplier is default)
+- Use React Router's `<Link>` component for internal navigation, not `<a>` tags
+- For `<a>` tags (external links or hash router), prefix with `#/` for internal routes (e.g., `href="#/profile?r=buyer"`)
+- Never create links that switch roles unintentionally
+
+## Styling Guidelines
+- **Use existing CSS classes** from `src/App.css` before creating new styles
+- Follow the established card styling patterns:
+  - `welcome-header-card` for header cards
+  - `journey-card` for journey/steps cards
+  - `opportunities-list-card` for table cards
+  - `rfq-metric-card` for metric cards
+  - `quick-actions-card` for action cards
+  - `resources-card` for resource links
+- Use Ant Design's `theme.useToken()` for dynamic colors (e.g., `token.colorPrimary`, `token.colorSuccess`)
+- Maintain consistent spacing: `marginBottom: 12` for cards
+- Use the established responsive classes: `rfq-metrics-desktop`, `rfq-metrics-mobile`, `journey-desktop`, `journey-mobile`
+
+## Component Patterns
+- Mirror the supplier dashboard structure when building buyer components
+- Use the same component hierarchy: Welcome Header → Journey → Main Content → Metrics → Analytics
+- Quick Actions sidebar should have: Primary CTA button → Secondary action grid → Metrics → Resources → Footer
+
+## Color Palette
+- Primary brand color: `#4A7B3C` (Axmed green)
+- Use Ant Design's default blue `#1890ff` for interactive elements
+- Status colors:
+  - Pending: `default` (gray)
+  - Processing: `blue`
+  - In Transit: `orange`
+  - Delivered/Success: `green`
+
+## Data & Mock Data
+- Store mock data at the top of component files or in `src/data/` directory
+- Use realistic pharmaceutical product names and supplier names
+- Keep data structures consistent between buyer and supplier views
+
+## Metabase Embeds
+- Always include `#titled=false` to hide Metabase titles
+- Use `minHeight: 400` for iframe containers
+- Include loading spinner with `iframe-loading` class
+- Load iframeResizer script from `https://axmed.metabaseapp.com/app/iframeResizer.js`
+
+## File Structure
+- Buyer components: `src/pages/buyer/`
+- Supplier components: `src/pages/supplier/`
+- Shared data: `src/data/`
+- Main layout and routing: `src/App.tsx`
+- All styles: `src/App.css`
+
+## Ant Design Usage
+- Import components from 'antd' (e.g., `Card`, `Row`, `Col`, `Button`, `Table`, `Tag`, `Progress`)
+- Use `bodyStyle` prop for card body padding
+- Use `gutter={[8, 8]}` or `gutter={24}` for Row spacing
+- Responsive columns: `xs={24} sm={12} md={6} lg={8}` etc.
+
+## Code Quality
+- Remove unused imports
+- Use TypeScript types for data structures
+- Keep components focused - extract large sections into separate components if needed
+- Use descriptive variable names for mock data arrays
+
+## Don't
+- Don't create new CSS files - add styles to `src/App.css`
+- Don't use inline styles for reusable patterns - create CSS classes
+- Don't hardcode colors - use CSS variables or token colors
+- Don't create links without role query parameters
+- Don't modify vite.config.ts base path without understanding deployment implications

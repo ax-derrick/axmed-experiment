@@ -22,7 +22,7 @@ import {
   journeySteps,
   quickActions,
   availableOpportunities,
-} from '../data/dashboardData';
+} from '../../data/dashboardData';
 
 const { Title, Text } = Typography;
 

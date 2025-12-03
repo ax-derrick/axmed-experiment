@@ -56,26 +56,24 @@ function Analytics() {
 
   return (
     <div className="analytics-page">
-      {/* Header with title and segmented control */}
-      <Card style={{ marginBottom: 12 }} bodyStyle={{ padding: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <Title level={4} style={{ margin: 0 }}>Analytics</Title>
-          <Segmented
-            options={[
-              { label: 'Marketplace Data', value: 'marketplace' },
-              { label: 'My Country', value: 'my-country' },
-            ]}
-            value={dataView}
-            onChange={(value) => handleViewChange(value as DataView)}
-          />
-        </div>
-      </Card>
+      {/* Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+        <Title level={4} style={{ margin: 0 }}>Analytics</Title>
+        <Segmented
+          options={[
+            { label: 'Marketplace Data', value: 'marketplace' },
+            { label: 'My Country', value: 'my-country' },
+          ]}
+          value={dataView}
+          onChange={(value) => handleViewChange(value as DataView)}
+        />
+      </div>
 
       {/* KPI Summary Cards */}
       <Row gutter={[8, 8]} style={{ marginBottom: 12 }} className="analytics-kpi-row">
         {kpiData.map((kpi, index) => (
           <Col xs={12} sm={12} lg={6} key={index}>
-            <Card className="rfq-metric-card" bodyStyle={{ padding: 16 }}>
+            <Card className="rfq-metric-card" styles={{ body: { padding: 16 } }}>
               <Text type="secondary" style={{ fontSize: 12 }}>{kpi.title}</Text>
               <div style={{ fontSize: 28, fontWeight: 700, color: '#0a1929', marginTop: 4 }}>
                 {kpi.value}
