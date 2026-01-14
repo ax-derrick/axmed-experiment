@@ -764,7 +764,7 @@ function PortfolioBulkUpload() {
 
       {/* Info Alert */}
       <Alert
-        message="Our team will review your submission and match products to our catalogue within 24-48 hours. You'll receive an email notification once your portfolio is updated."
+        message="Products already in our catalogue will be added to your portfolio immediately. New products will be reviewed and added within 24-48 hours."
         type="info"
         showIcon
         style={{ marginBottom: 24 }}
