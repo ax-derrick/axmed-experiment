@@ -45,6 +45,50 @@ import BulkUploadConfirmation from './pages/buyer/BulkUploadConfirmation';
 import { DraftOrderProvider, useDraftOrder } from './context/DraftOrderContext';
 import './App.css';
 
+// GitHub repo base URL
+const GITHUB_REPO_BASE = 'https://github.com/ax-derrick/axmed-experiment/blob/main';
+
+// Map routes to their source file paths (by user role where applicable)
+const routeToFileMap: Record<string, { supplier?: string; buyer?: string; default?: string }> = {
+  '/': {
+    supplier: 'src/pages/supplier/Dashboard.tsx',
+    buyer: 'src/pages/buyer/Dashboard.tsx'
+  },
+  '/analytics': {
+    supplier: 'src/pages/supplier/Analytics.tsx',
+    buyer: 'src/pages/buyer/Analytics.tsx'
+  },
+  '/portfolio': { default: 'src/pages/supplier/Portfolio.tsx' },
+  '/portfolio/bulk-upload': { default: 'src/pages/supplier/PortfolioBulkUpload.tsx' },
+  '/open-tenders': { default: 'src/pages/supplier/OpenTenders.tsx' },
+  '/my-bids': { default: 'src/pages/supplier/MyBids.tsx' },
+  '/catalogue': { default: 'src/pages/buyer/Catalogue.tsx' },
+  '/review-order': { default: 'src/pages/buyer/ReviewOrder.tsx' },
+  '/my-orders': { default: 'src/pages/buyer/MyOrders.tsx' },
+  '/bulk-upload': { default: 'src/pages/buyer/BulkUpload.tsx' },
+  '/bulk-upload-confirmation': { default: 'src/pages/buyer/BulkUploadConfirmation.tsx' },
+};
+
+// Helper to get GitHub URL for current route
+function getGitHubUrl(pathname: string, userRole: 'supplier' | 'buyer'): string {
+  // Handle dynamic routes like /order/:orderId
+  let routeKey = pathname;
+  if (pathname.startsWith('/order/')) {
+    routeKey = '/order/:orderId';
+  }
+
+  const fileMapping = routeToFileMap[routeKey];
+  if (fileMapping) {
+    const filePath = fileMapping[userRole] || fileMapping.default;
+    if (filePath) {
+      return `${GITHUB_REPO_BASE}/${filePath}`;
+    }
+  }
+
+  // Fallback to repo root
+  return 'https://github.com/ax-derrick/axmed-experiment';
+}
+
 // Draft bids organized by tender
 const draftBidsByTender = [
   {
@@ -489,9 +533,9 @@ function AppLayout() {
 
       </Layout>
 
-      {/* GitHub Link */}
+      {/* GitHub Link - links to source file for current page */}
       <a
-        href="https://github.com/ax-derrick/axmed-experiment"
+        href={getGitHubUrl(location.pathname, userRole)}
         target="_blank"
         rel="noopener noreferrer"
         className="github-link"
