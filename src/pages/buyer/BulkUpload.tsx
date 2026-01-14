@@ -374,9 +374,6 @@ function BulkUpload() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <Title level={4} style={{ margin: 0 }}>Bulk Order Entry</Title>
-            <Text type="secondary">
-              Add multiple items by uploading a spreadsheet or entering them directly in the table below.
-            </Text>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Text type="secondary" style={{ fontSize: 13 }}>

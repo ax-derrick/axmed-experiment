@@ -457,9 +457,9 @@ function Dashboard() {
                   ],
                   onClick: ({ key }) => {
                     if (key === 'bulk') {
-                      window.location.href = '/portfolio';
+                      window.location.href = '#/portfolio/bulk-upload?r=supplier';
                     } else {
-                      window.location.href = '/portfolio/add';
+                      window.location.href = '#/portfolio?r=supplier&action=add';
                     }
                   }
                 }}
@@ -590,9 +590,9 @@ function Dashboard() {
               ],
               onClick: ({ key }) => {
                 if (key === 'bulk') {
-                  window.location.href = '/portfolio';
+                  window.location.href = '#/portfolio/bulk-upload?r=supplier';
                 } else {
-                  window.location.href = '/portfolio/add';
+                  window.location.href = '#/portfolio?r=supplier&action=add';
                 }
               }
             }}

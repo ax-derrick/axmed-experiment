@@ -1,4 +1,4 @@
-import { Typography, Button, Upload, Modal, Select, Table, Input, message, Space, Alert } from 'antd';
+import { Typography, Button, Upload, Modal, Select, Table, Input, message, Space, Alert, Tooltip, Card, Spin } from 'antd';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,6 +9,12 @@ import {
   DeleteOutlined,
   RightOutlined,
   CheckOutlined,
+  QuestionCircleOutlined,
+  CheckCircleFilled,
+  LoadingOutlined,
+  ClockCircleOutlined,
+  MailOutlined,
+  FilePdfOutlined,
 } from '@ant-design/icons';
 import type { InputRef } from 'antd';
 
@@ -32,6 +38,9 @@ const OUR_FIELDS = [
   { key: 'countries', label: 'Countries' },
 ];
 
+// Availability status type
+type AvailabilityStatus = 'idle' | 'checking' | 'available' | 'unavailable';
+
 // Empty row template
 const createEmptyRow = (id: number) => ({
   id: String(id),
@@ -39,6 +48,7 @@ const createEmptyRow = (id: number) => ({
   presentation: '',
   dosage: '',
   countries: '',
+  availabilityStatus: 'idle' as AvailabilityStatus,
 });
 
 // Initial empty rows
@@ -50,6 +60,7 @@ interface RowData {
   presentation: string;
   dosage: string;
   countries: string;
+  availabilityStatus: AvailabilityStatus;
 }
 
 // Simple column matching function
@@ -77,6 +88,29 @@ function autoMatchColumns(headers: string[]): Record<string, string> {
   return mapping;
 }
 
+// Parse a CSV line handling quoted fields with commas
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+
+  return result;
+}
+
 // Parse CSV/Excel file (simplified - in real app would use xlsx library)
 async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<string, string>[] }> {
   return new Promise((resolve, reject) => {
@@ -90,9 +124,9 @@ async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<
           return;
         }
 
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const headers = parseCSVLine(lines[0]);
         const rows = lines.slice(1).map(line => {
-          const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          const values = parseCSVLine(line);
           const row: Record<string, string> = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || '';
@@ -118,6 +152,12 @@ function PortfolioBulkUpload() {
   const [editingCell, setEditingCell] = useState<{ rowId: string; field: string } | null>(null);
   const inputRef = useRef<InputRef>(null);
   const [draftSaved, setDraftSaved] = useState(false);
+
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedAvailableItems, setSubmittedAvailableItems] = useState<RowData[]>([]);
+  const [submittedPendingItems, setSubmittedPendingItems] = useState<RowData[]>([]);
 
   // Column mapping modal
   const [mappingModalVisible, setMappingModalVisible] = useState(false);
@@ -163,6 +203,7 @@ function PortfolioBulkUpload() {
         presentation: '',
         dosage: '',
         countries: '',
+        availabilityStatus: 'idle',
       };
 
       // Apply mapping
@@ -184,6 +225,28 @@ function PortfolioBulkUpload() {
     setRows(newRows);
     setMappingModalVisible(false);
     message.success(`Imported ${uploadedRows.length} items`);
+
+    // Trigger availability check after 2 seconds
+    setTimeout(() => {
+      // Set all rows with medicine names to 'checking' status
+      setRows(prev => prev.map(row => ({
+        ...row,
+        availabilityStatus: row.medicineName.trim() ? 'checking' : 'idle',
+      })));
+
+      // After 5 seconds, randomly assign availability status
+      setTimeout(() => {
+        setRows(prev => prev.map(row => {
+          if (row.availabilityStatus !== 'checking') return row;
+          // Randomly assign ~60% as available, 40% as unavailable
+          const isAvailable = Math.random() > 0.4;
+          return {
+            ...row,
+            availabilityStatus: isAvailable ? 'available' : 'unavailable',
+          };
+        }));
+      }, 5000);
+    }, 2000);
   };
 
   // Update a cell value
@@ -225,18 +288,46 @@ function PortfolioBulkUpload() {
       return;
     }
 
-    // In a real app, this would upload to backend
-    console.log('Submitting portfolio items:', validRows);
+    // Separate available and pending items
+    const availableItems = validRows.filter(row => row.availabilityStatus === 'available');
+    const pendingItems = validRows.filter(row => row.availabilityStatus !== 'available');
 
-    message.success(`${validRows.length} items submitted for processing`);
-    navigate('/portfolio?r=supplier');
+    // In a real app, this would upload to backend
+    console.log('Submitting portfolio items:', { availableItems, pendingItems });
+
+    // Show loading state
+    setIsSubmitting(true);
+
+    // After 2 seconds, show confirmation
+    setTimeout(() => {
+      setSubmittedAvailableItems(availableItems);
+      setSubmittedPendingItems(pendingItems);
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    }, 2000);
   };
 
   // Download template
   const handleDownloadTemplate = () => {
     const headers = ['Medicine Name', 'Presentation', 'Dosage', 'Countries'];
-    const exampleRow = ['Amoxicillin', 'Tablet', '500mg', 'Ghana, Nigeria'];
-    const csv = [headers.join(','), exampleRow.join(',')].join('\n');
+    const sampleRows = [
+      ['Amoxicillin', 'Capsule', '500mg', '"Ghana, Nigeria, Kenya, Tanzania, Uganda"'],
+      ['Metformin', 'Tablet', '500mg', '"Ghana, Uganda, Rwanda, Senegal"'],
+      ['Paracetamol', 'Tablet', '500mg', '"Nigeria, Tanzania, Kenya, Ethiopia, Malawi, Zambia"'],
+      ['Azithromycin', 'Tablet', '250mg', '"Ghana, Ethiopia, Ivory Coast"'],
+      ['Ciprofloxacin', 'Tablet', '500mg', '"Nigeria, Ghana, Senegal, Mali, Burkina Faso"'],
+      ['Omeprazole', 'Capsule', '20mg', '"Kenya, Uganda, Rwanda, Tanzania"'],
+      ['Ibuprofen', 'Tablet', '400mg', '"Ghana, Nigeria, Cameroon"'],
+      ['Metronidazole', 'Tablet', '400mg', '"Tanzania, Malawi, Zambia, Mozambique, Zimbabwe"'],
+      ['Atorvastatin', 'Tablet', '20mg', '"Ghana, Nigeria, Kenya, South Africa"'],
+      ['Amlodipine', 'Tablet', '5mg', '"Uganda, Rwanda, Kenya"'],
+      ['Losartan', 'Tablet', '50mg', '"Ghana, Senegal, Ivory Coast, Guinea"'],
+      ['Doxycycline', 'Capsule', '100mg', '"Nigeria, Kenya, Ethiopia, Tanzania, Uganda"'],
+      ['Albendazole', 'Tablet', '400mg', '"Ghana, Tanzania, Malawi"'],
+      ['Ceftriaxone', 'Injectable Solution', '1g', '"Nigeria, Ghana, Kenya, Uganda, Ethiopia"'],
+      ['Artemether/Lumefantrine', 'Tablet', '20mg/120mg', '"Ghana, Nigeria, Uganda, Tanzania, Kenya, Malawi, Zambia"'],
+    ];
+    const csv = [headers.join(','), ...sampleRows.map(row => row.join(','))].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -342,6 +433,46 @@ function PortfolioBulkUpload() {
       render: (text: string, record: RowData) => renderEditableCell(text, record, 'countries'),
     },
     {
+      title: 'Available',
+      dataIndex: 'availabilityStatus',
+      key: 'available',
+      width: 90,
+      align: 'center' as const,
+      render: (status: AvailabilityStatus, record: RowData) => {
+        // Only show status if there's a medicine name
+        if (!record.medicineName.trim()) {
+          return <span style={{ color: '#d9d9d9' }}>-</span>;
+        }
+
+        if (status === 'idle') {
+          return <span style={{ color: '#d9d9d9' }}>-</span>;
+        }
+
+        if (status === 'checking') {
+          return (
+            <Tooltip title="Checking availability...">
+              <LoadingOutlined style={{ color: '#1890ff', fontSize: 16 }} spin />
+            </Tooltip>
+          );
+        }
+
+        if (status === 'available') {
+          return (
+            <Tooltip title="Already available in the Axmed marketplace">
+              <CheckCircleFilled style={{ color: '#52c41a', fontSize: 16 }} />
+            </Tooltip>
+          );
+        }
+
+        // unavailable
+        return (
+          <Tooltip title="This SKU is not available in the marketplace yet. Once submitted, it will take up to 24 hours to be manually reviewed and added.">
+            <QuestionCircleOutlined style={{ color: '#faad14', fontSize: 16 }} />
+          </Tooltip>
+        );
+      },
+    },
+    {
       title: '',
       key: 'actions',
       width: 48,
@@ -356,6 +487,235 @@ function PortfolioBulkUpload() {
       ),
     },
   ];
+
+  // Loading screen while submitting
+  if (isSubmitting) {
+    return (
+      <div
+        className="bulk-upload-loading-page"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 400,
+          maxWidth: 700,
+          margin: '0 auto',
+        }}
+      >
+        <Spin size="large" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#595959' }}>
+          Processing your portfolio...
+        </Text>
+        <Text type="secondary" style={{ marginTop: 8, fontSize: 14 }}>
+          Verifying {validRows.length} item{validRows.length !== 1 ? 's' : ''} against our catalogue
+        </Text>
+      </div>
+    );
+  }
+
+  // Confirmation screen after submission
+  if (isSubmitted) {
+    const totalItems = submittedAvailableItems.length + submittedPendingItems.length;
+
+    // Progress steps for portfolio upload
+    const progressSteps = [
+      { label: 'Uploaded', completed: true, active: false },
+      { label: 'Verified', completed: true, active: false },
+      { label: 'Added to Portfolio', completed: submittedAvailableItems.length > 0, active: submittedAvailableItems.length === 0 },
+      { label: 'Pending Review', completed: false, active: submittedPendingItems.length > 0 },
+    ];
+
+    return (
+      <div className="bulk-upload-confirmation-page" style={{ maxWidth: 700, margin: '0 auto' }}>
+        {/* Main Status Card */}
+        <Card style={{ marginBottom: 16 }} styles={{ body: { padding: '32px' } }}>
+          <Text type="secondary" style={{ fontSize: 13 }}>
+            {totalItems} item{totalItems !== 1 ? 's' : ''} processed
+          </Text>
+          <Title level={3} style={{ margin: '4px 0 4px 0', fontWeight: 600 }}>
+            Portfolio updated successfully.
+          </Title>
+          <Title level={3} style={{ margin: '0 0 24px 0', fontWeight: 600 }}>
+            {submittedAvailableItems.length > 0
+              ? `${submittedAvailableItems.length} item${submittedAvailableItems.length !== 1 ? 's' : ''} added to your portfolio.`
+              : 'Items are pending review.'}
+          </Title>
+
+          {/* Progress Stepper */}
+          <div style={{ marginBottom: 16 }}>
+            {/* Progress Bar */}
+            <div style={{ display: 'flex', marginBottom: 8 }}>
+              {progressSteps.map((step, index) => (
+                <div
+                  key={index}
+                  style={{
+                    flex: 1,
+                    height: 4,
+                    background: step.completed ? '#73d13d' : step.active ? '#ffc53d' : '#f0f0f0',
+                    marginRight: index < progressSteps.length - 1 ? 4 : 0,
+                    borderRadius: 2,
+                  }}
+                />
+              ))}
+            </div>
+            {/* Step Labels */}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              {progressSteps.map((step, index) => (
+                <Text
+                  key={index}
+                  style={{
+                    fontSize: 12,
+                    color: step.completed || step.active ? '#262626' : '#8c8c8c',
+                    fontWeight: step.completed || step.active ? 600 : 400,
+                    textAlign: index === 0 ? 'left' : index === progressSteps.length - 1 ? 'right' : 'center',
+                    flex: 1,
+                  }}
+                >
+                  {step.label}
+                </Text>
+              ))}
+            </div>
+          </div>
+
+          {/* Status Text */}
+          <Text type="secondary" style={{ fontSize: 14 }}>
+            {submittedPendingItems.length > 0
+              ? `${submittedPendingItems.length} item${submittedPendingItems.length !== 1 ? 's are' : ' is'} pending review and will be added within 24-48 hours.`
+              : 'All items have been added to your portfolio.'}
+          </Text>
+        </Card>
+
+        {/* Upload Details Card */}
+        <Card style={{ marginBottom: 16 }} styles={{ body: { padding: '24px' } }}>
+          <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 15 }}>
+            Upload details
+          </Text>
+
+          {/* Available Items - Added Immediately */}
+          {submittedAvailableItems.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: submittedPendingItems.length > 0 ? 16 : 0 }}>
+              <CheckCircleFilled style={{ fontSize: 18, color: '#73d13d', marginTop: 2 }} />
+              <div style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14 }}>
+                  {submittedAvailableItems.length} item{submittedAvailableItems.length !== 1 ? 's' : ''} added to portfolio
+                </Text>
+                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {submittedAvailableItems.slice(0, 5).map((item, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        background: '#f6ffed',
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        color: '#595959'
+                      }}
+                    >
+                      {item.medicineName}
+                    </span>
+                  ))}
+                  {submittedAvailableItems.length > 5 && (
+                    <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+                      +{submittedAvailableItems.length - 5} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Pending Items - Under Review */}
+          {submittedPendingItems.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <ClockCircleOutlined style={{ fontSize: 18, color: '#bfbfbf', marginTop: 2 }} />
+              <div style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14 }}>
+                  {submittedPendingItems.length} item{submittedPendingItems.length !== 1 ? 's' : ''} pending review (24-48 hours)
+                </Text>
+                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {submittedPendingItems.slice(0, 5).map((item, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        background: '#fafafa',
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        color: '#595959'
+                      }}
+                    >
+                      {item.medicineName}
+                    </span>
+                  ))}
+                  {submittedPendingItems.length > 5 && (
+                    <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+                      +{submittedPendingItems.length - 5} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Actions Card */}
+        <Card style={{ marginBottom: 16 }} styles={{ body: { padding: 0 } }}>
+          <div
+            style={{
+              padding: '16px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid #f0f0f0',
+              cursor: 'pointer',
+            }}
+            onClick={() => message.success('Confirmation email sent')}
+          >
+            <Text>Send confirmation email</Text>
+            <MailOutlined style={{ fontSize: 18, color: '#8c8c8c' }} />
+          </div>
+          <div
+            style={{
+              padding: '16px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+            }}
+            onClick={() => message.info('Downloading summary...')}
+          >
+            <Text>Download upload summary (PDF)</Text>
+            <FilePdfOutlined style={{ fontSize: 18, color: '#8c8c8c' }} />
+          </div>
+        </Card>
+
+        {/* Bottom Buttons */}
+        <div style={{ display: 'flex', gap: 16 }}>
+          <Button
+            size="large"
+            onClick={() => {
+              setIsSubmitted(false);
+              setRows(createInitialRows());
+              setSubmittedAvailableItems([]);
+              setSubmittedPendingItems([]);
+            }}
+            style={{ flex: 1, height: 48 }}
+          >
+            Upload More
+          </Button>
+          <Button
+            type="primary"
+            size="large"
+            onClick={() => navigate('/portfolio?r=supplier')}
+            style={{ flex: 1, height: 48 }}
+          >
+            View Portfolio
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bulk-upload-page">

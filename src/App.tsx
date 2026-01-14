@@ -195,7 +195,7 @@ const { Text } = Typography;
 function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   // const [drawerOpen, setDrawerOpen] = useState(false); // Moved to context
   const [expandedTenders, setExpandedTenders] = useState<number[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -232,7 +232,7 @@ function AppLayout() {
   const setUserRole = (role: 'supplier' | 'buyer') => {
     setSwitchingRole(role);
     setTimeout(() => {
-      setSearchParams({ r: role });
+      navigate(`/?r=${role}`);
       setSwitchingRole(null);
     }, 800);
   };

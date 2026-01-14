@@ -334,7 +334,6 @@ function OpenTenders() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={4} style={{ margin: 0 }}>Open Tenders</Title>
-          <Text type="secondary">Find current SKUs that match your portfolio and submit your bids</Text>
         </div>
         <Button icon={<ExportOutlined />} onClick={handleExport}>Export</Button>
       </div>

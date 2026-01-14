@@ -260,7 +260,6 @@ function MyBids() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={4} style={{ margin: 0 }}>Track Your Bids</Title>
-          <Text type="secondary">Stay updated on the status of each bid, from submission to confirmation of supply</Text>
         </div>
         <Button icon={<ExportOutlined />} onClick={handleExport}>Export</Button>
       </div>

@@ -1,7 +1,7 @@
-import { Typography, Input, Select, Table, Tag, Button, Alert, Dropdown } from 'antd';
+import { Typography, Input, Select, Table, Tag, Button, Dropdown, Card, Space } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SearchOutlined, InfoCircleOutlined, CloseOutlined, PlusOutlined, UploadOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { SearchOutlined, InfoCircleOutlined, PlusOutlined, UploadOutlined, AppstoreOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -35,7 +35,7 @@ function MyOrders() {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showBanner, setShowBanner] = useState(true);
+
 
   // New Order dropdown menu
   const newOrderMenuItems: MenuProps['items'] = [
@@ -63,11 +63,11 @@ function MyOrders() {
   // Status tag color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Submitted': return 'processing';
-      case 'In progress': return 'default';
-      case 'Completed': return 'success';
-      case 'Cancelled': return 'error';
-      default: return 'default';
+      case 'Submitted': return '#1890ff'; // Blue
+      case 'In progress': return '#fa8c16'; // Orange
+      case 'Completed': return '#52c41a'; // Green
+      case 'Cancelled': return '#f5222d'; // Red
+      default: return '#d9d9d9'; // Grey
     }
   };
 
@@ -105,7 +105,12 @@ function MyOrders() {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Tag color={getStatusColor(status)} style={{ borderRadius: 4 }}>
+        <Tag style={{
+          background: getStatusColor(status),
+          color: '#fff',
+          border: 'none',
+          borderRadius: 4,
+        }}>
           {status}
         </Tag>
       ),
@@ -137,9 +142,6 @@ function MyOrders() {
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <Title level={4} style={{ margin: 0 }}>My Orders</Title>
-          <Text type="secondary">
-            View the full history of your submitted orders, track their status, and manage procurement process with ease.
-          </Text>
         </div>
         <Dropdown menu={{ items: newOrderMenuItems }} trigger={['click']}>
           <Button type="primary" icon={<PlusOutlined />}>
@@ -148,69 +150,73 @@ function MyOrders() {
         </Dropdown>
       </div>
 
-      {/* Info Banner */}
-      {showBanner && (
-        <Alert
-          message={
-            <span>
-              Your orders may be split and combined with that of other buyers to aggregate quantities and secure better bids. Each split is assigned a unique split ID and can be tracked under an order ID.
-            </span>
-          }
-          type="info"
-          showIcon
-          closable
-          onClose={() => setShowBanner(false)}
-          style={{ marginBottom: 24 }}
-          closeIcon={<CloseOutlined />}
-        />
-      )}
 
-      {/* Filters */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-        <Input
-          placeholder="Search for order"
-          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ width: 200 }}
-          allowClear
-        />
-        <div style={{ display: 'flex', gap: 12 }}>
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ width: 150 }}
-            options={[
-              { label: 'All selected', value: 'all' },
-              { label: 'Submitted', value: 'submitted' },
-              { label: 'In progress', value: 'in_progress' },
-              { label: 'Completed', value: 'completed' },
-              { label: 'Cancelled', value: 'cancelled' },
-            ]}
+
+      <Card
+        className="catalogue-content catalogue-airtable"
+        styles={{ body: { padding: 0 } }}
+      >
+        {/* Toolbar */}
+        <div className="catalogue-toolbar" style={{
+          padding: 16,
+          borderBottom: '1px solid #f0f0f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 12,
+        }}>
+          <Input
+            placeholder="Search for order"
+            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 300 }}
+            allowClear
           />
-          <Select
-            defaultValue="recent"
-            style={{ width: 120 }}
-            options={[
-              { label: 'Recent', value: 'recent' },
-              { label: 'Oldest', value: 'oldest' },
-            ]}
-          />
+          <Space>
+            <Select
+              value={statusFilter}
+              onChange={setStatusFilter}
+              style={{ width: 150 }}
+              options={[
+                { label: 'All selected', value: 'all' },
+                { label: 'Submitted', value: 'submitted' },
+                { label: 'In progress', value: 'in_progress' },
+                { label: 'Completed', value: 'completed' },
+                { label: 'Cancelled', value: 'cancelled' },
+              ]}
+            />
+            <Select
+              defaultValue="recent"
+              style={{ width: 120 }}
+              options={[
+                { label: 'Recent', value: 'recent' },
+                { label: 'Oldest', value: 'oldest' },
+              ]}
+            />
+          </Space>
         </div>
-      </div>
 
-      {/* Orders Table */}
-      <Table
-        columns={columns}
-        dataSource={filteredOrders}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: false,
-          position: ['bottomRight'],
-        }}
-        className="my-orders-table"
-      />
+        {/* Order Count */}
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
+          <Text type="secondary">{filteredOrders.length} orders</Text>
+        </div>
+
+        {/* Orders Table */}
+        <Table
+          columns={columns}
+          dataSource={filteredOrders}
+          rowKey="id"
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => `Total ${total} orders`,
+          }}
+          size="small"
+          className="catalogue-table catalogue-table-airtable"
+        />
+      </Card>
     </div>
   );
 }

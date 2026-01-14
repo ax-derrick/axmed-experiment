@@ -1,6 +1,6 @@
 import { Typography, Card, Input, Button, Table, Tag, Space, Select, Drawer, Row, Col, Dropdown } from 'antd';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   SearchOutlined,
   CloseOutlined,
@@ -185,6 +185,7 @@ const kpiData = [
 
 function Portfolio() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchText, setSearchText] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
@@ -192,6 +193,16 @@ function Portfolio() {
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PortfolioProduct | null>(null);
+
+  // Check for action=add query parameter to auto-open add drawer
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setAddDrawerOpen(true);
+      // Remove the action param from URL to prevent re-opening on refresh
+      searchParams.delete('action');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Edit form state
   const [editForm, setEditForm] = useState<string>('');
@@ -364,7 +375,6 @@ function Portfolio() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={4} style={{ margin: 0 }}>Portfolio</Title>
-          <Text type="secondary">Here you can keep up to date the medicines you can supply</Text>
         </div>
         <Space>
           <Button icon={<ExportOutlined />}>Export</Button>
