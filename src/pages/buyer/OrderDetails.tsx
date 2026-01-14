@@ -63,12 +63,9 @@ function OrderDetails() {
 
   const orderData = mockOrderData;
 
-  // State for item selection and quantities
+  // State for item selection
   const [selectedItems, setSelectedItems] = useState<string[]>(
     orderData.items.map(item => item.id)
-  );
-  const [quantities, setQuantities] = useState<Record<string, number>>(
-    Object.fromEntries(orderData.items.map(item => [item.id, item.quantity]))
   );
 
   // Check if we're past the quotations ready stage (step 3 or higher means quotes are being evaluated)
