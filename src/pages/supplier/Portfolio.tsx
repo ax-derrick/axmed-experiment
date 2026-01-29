@@ -10,6 +10,9 @@ import {
   DeleteOutlined,
   CheckOutlined,
   DownOutlined,
+  ClockCircleOutlined,
+  CheckCircleFilled,
+  RightOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -181,6 +184,32 @@ const kpiData = [
   { title: 'Countries Active', value: String(uniqueCountries.length) },
   { title: 'Categories Covered', value: String(uniqueCategories.length) },
   { title: 'Pending Registrations', value: '3' }, // This would come from backend in real app
+];
+
+// Pending uploads data (mock - would come from backend)
+interface PendingUpload {
+  id: string;
+  itemCount: number;
+  uploadDate: string;
+  status: 'processing' | 'under_review' | 'completed';
+  items: string[];
+}
+
+const pendingUploads: PendingUpload[] = [
+  {
+    id: '1',
+    itemCount: 15,
+    uploadDate: 'Jan 14, 2:30 PM',
+    status: 'under_review',
+    items: ['Amoxicillin', 'Metformin', 'Paracetamol', 'Azithromycin', 'Ciprofloxacin'],
+  },
+  {
+    id: '2',
+    itemCount: 8,
+    uploadDate: 'Jan 12, 10:15 AM',
+    status: 'completed',
+    items: ['Omeprazole', 'Ibuprofen', 'Doxycycline', 'Metronidazole'],
+  },
 ];
 
 function Portfolio() {
@@ -399,6 +428,81 @@ function Portfolio() {
           </Col>
         ))}
       </Row>
+
+      {/* Pending Uploads Section */}
+      {pendingUploads.length > 0 && (
+        <Card
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: 0 } }}
+        >
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f0' }}>
+            <Text strong style={{ fontSize: 15 }}>Pending Uploads</Text>
+          </div>
+          {pendingUploads.map((upload, index) => (
+            <div
+              key={upload.id}
+              style={{
+                padding: '16px 20px',
+                borderBottom: index < pendingUploads.length - 1 ? '1px solid #f0f0f0' : 'none',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+              }}
+            >
+              {upload.status === 'completed' ? (
+                <CheckCircleFilled style={{ fontSize: 20, color: '#52c41a', marginTop: 2 }} />
+              ) : (
+                <ClockCircleOutlined style={{ fontSize: 20, color: '#faad14', marginTop: 2 }} />
+              )}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <Text strong>{upload.itemCount} items</Text>
+                  <Text type="secondary" style={{ fontSize: 12 }}>· Uploaded {upload.uploadDate}</Text>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Tag
+                    style={{
+                      margin: 0,
+                      background: upload.status === 'completed' ? '#f6ffed' : '#fffbe6',
+                      color: upload.status === 'completed' ? '#52c41a' : '#d48806',
+                      border: 'none',
+                    }}
+                  >
+                    {upload.status === 'completed' ? 'Completed' : upload.status === 'under_review' ? 'Under Review' : 'Processing'}
+                  </Tag>
+                  {upload.status !== 'completed' && (
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      Expected within 24-48 hours
+                    </Text>
+                  )}
+                </div>
+                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {upload.items.slice(0, 4).map((item, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        background: '#fafafa',
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        fontSize: 11,
+                        color: '#595959',
+                      }}
+                    >
+                      {item}
+                    </span>
+                  ))}
+                  {upload.itemCount > 4 && (
+                    <span style={{ fontSize: 11, color: '#8c8c8c' }}>
+                      +{upload.itemCount - 4} more
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Button type="text" icon={<RightOutlined />} style={{ color: '#8c8c8c' }} />
+            </div>
+          ))}
+        </Card>
+      )}
 
       {/* Filters and Table */}
       <Card styles={{ body: { padding: 0 } }}>

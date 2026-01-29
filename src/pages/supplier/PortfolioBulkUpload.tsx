@@ -1,5 +1,5 @@
-import { Typography, Button, Upload, Modal, Select, Table, Input, message, Space, Alert, Tooltip, Card, Spin } from 'antd';
-import { useState, useRef } from 'react';
+import { Typography, Button, Upload, Modal, Select, Table, Input, message, Space, Alert, Card, Spin, Tooltip } from 'antd';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeftOutlined,
@@ -9,12 +9,12 @@ import {
   DeleteOutlined,
   RightOutlined,
   CheckOutlined,
-  QuestionCircleOutlined,
-  CheckCircleFilled,
-  LoadingOutlined,
   ClockCircleOutlined,
   MailOutlined,
   FilePdfOutlined,
+  CheckCircleFilled,
+  QuestionCircleOutlined,
+  LoadingOutlined,
 } from '@ant-design/icons';
 import type { InputRef } from 'antd';
 
@@ -144,20 +144,54 @@ async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<
   });
 }
 
+const DRAFT_STORAGE_KEY = 'portfolio_bulk_upload_draft';
+
 function PortfolioBulkUpload() {
   const navigate = useNavigate();
 
-  // Table data
-  const [rows, setRows] = useState<RowData[]>(createInitialRows());
+  // Load draft from localStorage on mount
+  const loadDraftFromStorage = (): RowData[] | null => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    return null;
+  };
+
+  // Table data - initialize from localStorage if available
+  const [rows, setRows] = useState<RowData[]>(() => {
+    const draft = loadDraftFromStorage();
+    return draft || createInitialRows();
+  });
   const [editingCell, setEditingCell] = useState<{ rowId: string; field: string } | null>(null);
   const inputRef = useRef<InputRef>(null);
-  const [draftSaved, setDraftSaved] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(() => {
+    // Check if we loaded from a draft
+    return loadDraftFromStorage() !== null;
+  });
+
+  // Show notification if draft was restored
+  useEffect(() => {
+    const draft = loadDraftFromStorage();
+    if (draft) {
+      const validCount = draft.filter(r => r.medicineName.trim()).length;
+      if (validCount > 0) {
+        message.info(`Restored draft with ${validCount} item${validCount !== 1 ? 's' : ''}`);
+      }
+    }
+  }, []);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submittedAvailableItems, setSubmittedAvailableItems] = useState<RowData[]>([]);
-  const [submittedPendingItems, setSubmittedPendingItems] = useState<RowData[]>([]);
+  const [submittedItems, setSubmittedItems] = useState<RowData[]>([]);
 
   // Column mapping modal
   const [mappingModalVisible, setMappingModalVisible] = useState(false);
@@ -271,14 +305,23 @@ function PortfolioBulkUpload() {
   // Count valid rows (has at least medicine name)
   const validRows = rows.filter((row) => row.medicineName.trim());
 
-  // Save as draft
+  // Save as draft to localStorage
   const handleSaveDraft = () => {
     if (validRows.length === 0) {
       message.warning('Please add at least one medicine');
       return;
     }
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(rows));
     setDraftSaved(true);
     message.success('Draft saved');
+  };
+
+  // Clear draft from localStorage
+  const handleClearDraft = () => {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    setRows(createInitialRows());
+    setDraftSaved(false);
+    message.info('Draft cleared');
   };
 
   // Submit for processing
@@ -288,22 +331,19 @@ function PortfolioBulkUpload() {
       return;
     }
 
-    // Separate available and pending items
-    const availableItems = validRows.filter(row => row.availabilityStatus === 'available');
-    const pendingItems = validRows.filter(row => row.availabilityStatus !== 'available');
-
     // In a real app, this would upload to backend
-    console.log('Submitting portfolio items:', { availableItems, pendingItems });
+    console.log('Submitting portfolio items:', validRows);
 
     // Show loading state
     setIsSubmitting(true);
 
     // After 2 seconds, show confirmation
     setTimeout(() => {
-      setSubmittedAvailableItems(availableItems);
-      setSubmittedPendingItems(pendingItems);
+      setSubmittedItems(validRows);
       setIsSubmitting(false);
       setIsSubmitted(true);
+      // Clear draft on successful submission
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
     }, 2000);
   };
 
@@ -466,7 +506,7 @@ function PortfolioBulkUpload() {
 
         // unavailable
         return (
-          <Tooltip title="This SKU is not available in the marketplace yet. Once submitted, it will take up to 24 hours to be manually reviewed and added.">
+          <Tooltip title="This SKU is not available in the marketplace yet. It will be reviewed and added within 24-48 hours.">
             <QuestionCircleOutlined style={{ color: '#faad14', fontSize: 16 }} />
           </Tooltip>
         );
@@ -505,10 +545,10 @@ function PortfolioBulkUpload() {
       >
         <Spin size="large" />
         <Text style={{ marginTop: 16, fontSize: 16, color: '#595959' }}>
-          Processing your portfolio...
+          Submitting your portfolio...
         </Text>
         <Text type="secondary" style={{ marginTop: 8, fontSize: 14 }}>
-          Verifying {validRows.length} item{validRows.length !== 1 ? 's' : ''} against our catalogue
+          Uploading {validRows.length} item{validRows.length !== 1 ? 's' : ''} for review
         </Text>
       </div>
     );
@@ -516,14 +556,13 @@ function PortfolioBulkUpload() {
 
   // Confirmation screen after submission
   if (isSubmitted) {
-    const totalItems = submittedAvailableItems.length + submittedPendingItems.length;
+    const totalItems = submittedItems.length;
 
-    // Progress steps for portfolio upload
+    // Progress steps for portfolio upload - all items go to review
     const progressSteps = [
-      { label: 'Uploaded', completed: true, active: false },
-      { label: 'Verified', completed: true, active: false },
-      { label: 'Added to Portfolio', completed: submittedAvailableItems.length > 0, active: submittedAvailableItems.length === 0 },
-      { label: 'Pending Review', completed: false, active: submittedPendingItems.length > 0 },
+      { label: 'Uploaded', completed: true },
+      { label: 'Under Review', active: true },
+      { label: 'Added to Portfolio', completed: false },
     ];
 
     return (
@@ -531,15 +570,10 @@ function PortfolioBulkUpload() {
         {/* Main Status Card */}
         <Card style={{ marginBottom: 16 }} styles={{ body: { padding: '32px' } }}>
           <Text type="secondary" style={{ fontSize: 13 }}>
-            {totalItems} item{totalItems !== 1 ? 's' : ''} processed
+            {totalItems} item{totalItems !== 1 ? 's' : ''} submitted
           </Text>
-          <Title level={3} style={{ margin: '4px 0 4px 0', fontWeight: 600 }}>
-            Portfolio updated successfully.
-          </Title>
-          <Title level={3} style={{ margin: '0 0 24px 0', fontWeight: 600 }}>
-            {submittedAvailableItems.length > 0
-              ? `${submittedAvailableItems.length} item${submittedAvailableItems.length !== 1 ? 's' : ''} added to your portfolio.`
-              : 'Items are pending review.'}
+          <Title level={3} style={{ margin: '4px 0 24px 0', fontWeight: 600 }}>
+            Your portfolio is being reviewed.
           </Title>
 
           {/* Progress Stepper */}
@@ -580,83 +614,45 @@ function PortfolioBulkUpload() {
 
           {/* Status Text */}
           <Text type="secondary" style={{ fontSize: 14 }}>
-            {submittedPendingItems.length > 0
-              ? `${submittedPendingItems.length} item${submittedPendingItems.length !== 1 ? 's are' : ' is'} pending review and will be added within 24-48 hours.`
-              : 'All items have been added to your portfolio.'}
+            Our team will match your products to our catalogue and add them to your portfolio within 24-48 hours. You'll receive an email when it's ready.
           </Text>
         </Card>
 
         {/* Upload Details Card */}
         <Card style={{ marginBottom: 16 }} styles={{ body: { padding: '24px' } }}>
           <Text strong style={{ display: 'block', marginBottom: 16, fontSize: 15 }}>
-            Upload details
+            Submitted items
           </Text>
 
-          {/* Available Items - Added Immediately */}
-          {submittedAvailableItems.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: submittedPendingItems.length > 0 ? 16 : 0 }}>
-              <CheckCircleFilled style={{ fontSize: 18, color: '#73d13d', marginTop: 2 }} />
-              <div style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14 }}>
-                  {submittedAvailableItems.length} item{submittedAvailableItems.length !== 1 ? 's' : ''} added to portfolio
-                </Text>
-                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {submittedAvailableItems.slice(0, 5).map((item, idx) => (
-                    <span
-                      key={idx}
-                      style={{
-                        background: '#f6ffed',
-                        padding: '2px 8px',
-                        borderRadius: 4,
-                        fontSize: 12,
-                        color: '#595959'
-                      }}
-                    >
-                      {item.medicineName}
-                    </span>
-                  ))}
-                  {submittedAvailableItems.length > 5 && (
-                    <span style={{ fontSize: 12, color: '#8c8c8c' }}>
-                      +{submittedAvailableItems.length - 5} more
-                    </span>
-                  )}
-                </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <ClockCircleOutlined style={{ fontSize: 18, color: '#faad14', marginTop: 2 }} />
+            <div style={{ flex: 1 }}>
+              <Text style={{ fontSize: 14 }}>
+                {submittedItems.length} item{submittedItems.length !== 1 ? 's' : ''} pending review
+              </Text>
+              <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {submittedItems.slice(0, 8).map((item, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      background: '#fffbe6',
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      fontSize: 12,
+                      color: '#595959'
+                    }}
+                  >
+                    {item.medicineName}
+                  </span>
+                ))}
+                {submittedItems.length > 8 && (
+                  <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+                    +{submittedItems.length - 8} more
+                  </span>
+                )}
               </div>
             </div>
-          )}
-
-          {/* Pending Items - Under Review */}
-          {submittedPendingItems.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <ClockCircleOutlined style={{ fontSize: 18, color: '#bfbfbf', marginTop: 2 }} />
-              <div style={{ flex: 1 }}>
-                <Text style={{ fontSize: 14 }}>
-                  {submittedPendingItems.length} item{submittedPendingItems.length !== 1 ? 's' : ''} pending review (24-48 hours)
-                </Text>
-                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {submittedPendingItems.slice(0, 5).map((item, idx) => (
-                    <span
-                      key={idx}
-                      style={{
-                        background: '#fafafa',
-                        padding: '2px 8px',
-                        borderRadius: 4,
-                        fontSize: 12,
-                        color: '#595959'
-                      }}
-                    >
-                      {item.medicineName}
-                    </span>
-                  ))}
-                  {submittedPendingItems.length > 5 && (
-                    <span style={{ fontSize: 12, color: '#8c8c8c' }}>
-                      +{submittedPendingItems.length - 5} more
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </Card>
 
         {/* Actions Card */}
@@ -697,8 +693,7 @@ function PortfolioBulkUpload() {
             onClick={() => {
               setIsSubmitted(false);
               setRows(createInitialRows());
-              setSubmittedAvailableItems([]);
-              setSubmittedPendingItems([]);
+              setSubmittedItems([]);
             }}
             style={{ flex: 1, height: 48 }}
           >
@@ -741,6 +736,15 @@ function PortfolioBulkUpload() {
               {validRows.length} item{validRows.length !== 1 ? 's' : ''} ready
             </Text>
             <Space>
+              {draftSaved && (
+                <Button
+                  onClick={handleClearDraft}
+                  type="text"
+                  style={{ color: '#8c8c8c' }}
+                >
+                  Clear Draft
+                </Button>
+              )}
               <Button
                 onClick={handleSaveDraft}
                 disabled={validRows.length === 0 || draftSaved}
@@ -764,7 +768,7 @@ function PortfolioBulkUpload() {
 
       {/* Info Alert */}
       <Alert
-        message="Products already in our catalogue will be added to your portfolio immediately. New products will be reviewed and added within 24-48 hours."
+        message="Our team will match your products to our catalogue and add them to your portfolio within 24-48 hours. You'll receive an email notification when your portfolio is updated."
         type="info"
         showIcon
         style={{ marginBottom: 24 }}

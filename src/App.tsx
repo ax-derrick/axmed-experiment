@@ -26,6 +26,7 @@ import {
   DeleteOutlined,
   PlusOutlined,
   FileTextOutlined as NoteIcon,
+  RobotOutlined,
 } from '@ant-design/icons';
 import { HashRouter, Routes, Route, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import SupplierDashboard from './pages/supplier/Dashboard';
@@ -43,6 +44,8 @@ import OrderDetails from './pages/buyer/OrderDetails';
 import BulkUpload from './pages/buyer/BulkUpload';
 import BulkUploadConfirmation from './pages/buyer/BulkUploadConfirmation';
 import { DraftOrderProvider, useDraftOrder } from './context/DraftOrderContext';
+import { ChatProvider, useChat } from './context/ChatContext';
+import { AIChatDrawer } from './components/AIChatDrawer';
 import './App.css';
 
 // GitHub repo base URL
@@ -251,6 +254,9 @@ function AppLayout() {
 
   // Draft order context for buyer
   const { items: draftOrderItems, updateItem, removeItem, isDrawerOpen, openDrawer, closeDrawer, notification, dismissNotification, bulkUploadDraft, clearBulkUploadDraft } = useDraftOrder();
+
+  // Chat context
+  const { openChat } = useChat();
 
   // Track item count changes
   useEffect(() => {
@@ -504,6 +510,10 @@ function AppLayout() {
             </div>
             {/* Right side menu items */}
             <Space size="large" className="header-menu">
+              <div className="ai-chat-btn" onClick={openChat} style={{ cursor: 'pointer' }}>
+                <RobotOutlined className="ai-chat-icon" />
+                <span className="ai-chat-text">Ask Axmed AI</span>
+              </div>
               <div className="draft-bids-btn" onClick={openDrawer} style={{ cursor: 'pointer' }}>
                 <ShoppingCartOutlined className="draft-bids-icon" />
                 <span className="draft-bids-text">{userRole === 'buyer' ? 'Draft Orders' : 'Draft Bids'}</span>
@@ -1054,6 +1064,9 @@ function AppLayout() {
           </div>
         </div>
       )}
+
+      {/* AI Chat Drawer */}
+      <AIChatDrawer />
     </Layout>
   );
 }
@@ -1061,9 +1074,11 @@ function AppLayout() {
 function App() {
   return (
     <DraftOrderProvider>
-      <HashRouter>
-        <AppLayout />
-      </HashRouter>
+      <ChatProvider>
+        <HashRouter>
+          <AppLayout />
+        </HashRouter>
+      </ChatProvider>
     </DraftOrderProvider>
   );
 }
