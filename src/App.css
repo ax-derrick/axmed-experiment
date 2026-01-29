@@ -2997,6 +2997,87 @@ a:has(.quickstart-card):hover {
   justify-content: center;
   align-items: center;
   padding: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative gradient dots background */
+.chat-dots-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.chat-dot {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(1px);
+  opacity: 0.6;
+  animation: float 6s ease-in-out infinite;
+}
+
+.chat-dot-1 {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, rgba(138, 43, 226, 0) 70%);
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+}
+
+.chat-dot-2 {
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0) 70%);
+  top: 15%;
+  right: 10%;
+  animation-delay: -1s;
+}
+
+.chat-dot-3 {
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.35) 0%, rgba(236, 72, 153, 0) 70%);
+  bottom: 25%;
+  left: 15%;
+  animation-delay: -2s;
+}
+
+.chat-dot-4 {
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0) 70%);
+  bottom: 20%;
+  right: 5%;
+  animation-delay: -3s;
+}
+
+.chat-dot-5 {
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.35) 0%, rgba(251, 191, 36, 0) 70%);
+  top: 40%;
+  left: 2%;
+  animation-delay: -4s;
+}
+
+.chat-dot-6 {
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, rgba(139, 92, 246, 0) 70%);
+  top: 5%;
+  right: 25%;
+  animation-delay: -5s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.05);
+  }
 }
 
 .chat-initial-content {
@@ -3005,6 +3086,8 @@ a:has(.quickstart-card):hover {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .chat-initial-greeting {
@@ -3045,9 +3128,19 @@ a:has(.quickstart-card):hover {
 
 .chat-initial-disclaimer {
   margin-top: var(--spacing-lg);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-text-tertiary);
   text-align: center;
+  line-height: 1.8;
+}
+
+.chat-initial-disclaimer a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.chat-initial-disclaimer a:hover {
+  text-decoration: underline;
 }
 
 /* Message Container */
@@ -3286,8 +3379,18 @@ a:has(.quickstart-card):hover {
 }
 
 .chat-disclaimer-v2 {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-text-tertiary);
+  line-height: 1.8;
+}
+
+.chat-disclaimer-v2 a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.chat-disclaimer-v2 a:hover {
+  text-decoration: underline;
 }
 
 /* Mobile adjustments for chat */

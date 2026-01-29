@@ -117,7 +117,10 @@ export function AIChatDrawer() {
               />
             </div>
             <div className="chat-initial-disclaimer">
-              Axmed AI can make mistakes. Verify important info.
+              Axmed AI can make mistakes. Verify important info. <br /> Check our{' '}
+              <a href="https://axmed.com/legal/privacy-policy/" target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>
             </div>
           </div>
         </div>
@@ -222,7 +225,10 @@ export function AIChatDrawer() {
             </div>
             <div className="chat-input-footer">
               <span className="chat-disclaimer-v2">
-                Axmed AI can make mistakes. Verify important info.
+                Axmed AI can make mistakes. Verify important info. <br /> Check our{' '}
+                <a href="https://axmed.com/legal/privacy-policy/" target="_blank" rel="noopener noreferrer">
+                  Privacy Policy
+                </a>
               </span>
             </div>
           </div>
