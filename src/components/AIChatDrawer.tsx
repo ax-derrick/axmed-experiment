@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Drawer, Input, Button, Tooltip, message } from 'antd';
+import { Drawer, Input, Button, Tooltip, message, Dropdown } from 'antd';
 import {
   SendOutlined,
   RobotOutlined,
@@ -8,6 +8,7 @@ import {
   LikeOutlined,
   DislikeOutlined,
   ReloadOutlined,
+  PlusCircleOutlined,
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -17,6 +18,15 @@ const { TextArea } = Input;
 
 // User name can be passed as prop or configured here
 const USER_NAME = 'there';
+
+// Suggested questions/FAQs
+const SUGGESTED_QUESTIONS = [
+  'What is Axmed?',
+  'Who can buy on Axmed?',
+  'How does ordering work?',
+  'How do offers work?',
+  'How is quality ensured?',
+];
 
 export function AIChatDrawer() {
   const { messages, isOpen, isLoading, closeChat, sendMessage } = useChat();
@@ -115,6 +125,20 @@ export function AIChatDrawer() {
                 disabled={!inputValue.trim() || isLoading}
                 className="chat-send-btn-v2"
               />
+            </div>
+            <div className="chat-suggested-questions">
+              {SUGGESTED_QUESTIONS.map((question, index) => (
+                <button
+                  key={index}
+                  className="chat-suggestion-pill"
+                  onClick={() => {
+                    setInputValue(question);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  {question}
+                </button>
+              ))}
             </div>
             <div className="chat-initial-disclaimer">
               Axmed AI can make mistakes. Verify important info. <br /> Check our{' '}
@@ -215,6 +239,26 @@ export function AIChatDrawer() {
                 className="chat-input-v2"
                 disabled={isLoading}
               />
+              <Dropdown
+                menu={{
+                  items: SUGGESTED_QUESTIONS.map((question, index) => ({
+                    key: index,
+                    label: question,
+                    onClick: () => {
+                      setInputValue(question);
+                      inputRef.current?.focus();
+                    },
+                  })),
+                }}
+                trigger={['click']}
+                placement="topRight"
+              >
+                <Button
+                  type="text"
+                  icon={<PlusCircleOutlined />}
+                  className="chat-suggestions-btn"
+                />
+              </Dropdown>
               <Button
                 type="text"
                 icon={isLoading ? <LoadingOutlined spin /> : <SendOutlined />}
